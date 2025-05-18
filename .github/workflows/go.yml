@@ -54,10 +54,10 @@ jobs:
 
     - name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
       run: | 
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o dist/${{ matrix.output_name }}${{ matrix.ext }} ./...
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ../dist/${{ matrix.output_name }}${{ matrix.ext }} ./...
 
     - name: Upload ${{ matrix.goos }}/${{ matrix.goarch }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.output_name }}
-        path: dist/${{ matrix.output_name }}${{ matrix.ext }}
+        path: ../dist/${{ matrix.output_name }}${{ matrix.ext }}
