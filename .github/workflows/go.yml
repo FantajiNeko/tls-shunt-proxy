@@ -1,7 +1,7 @@
-# This workflow will build a golang project
+# This workflow will build a golang project for multiple platforms and upload the binaries.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: Go
+name: Go Cross-Build and Upload
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -21,8 +21,43 @@ jobs:
       with:
         go-version: '1.24.3'
 
-    - name: Build
-      run: go build -v ./...
-
     - name: Test
       run: go test -v ./...
+
+  cross-build:
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            output_name: tls-shunt-proxy-linux-amd64
+            ext: ""
+          - goos: linux
+            goarch: arm64
+            output_name: tls-shunt-proxy-linux-arm64
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            output_name: tls-shunt-proxy-windows-amd64
+            ext: ".exe"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.3'
+
+    - name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+      run: | 
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o dist/${{ matrix.output_name }}${{ matrix.ext }} ./...
+
+    - name: Upload ${{ matrix.goos }}/${{ matrix.goarch }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.output_name }}
+        path: dist/${{ matrix.output_name }}${{ matrix.ext }}
